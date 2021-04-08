@@ -1147,6 +1147,7 @@ class InstaPy:
         sleep_delay_relax_point: (int, int) = (300, 600),
         relax_point_range: (int, int) = (3, 5),
         interact: bool = False,
+        interact_delay: (int, int) = (1,5)
     ):
         """
         Allows to follow by any scrapped list
@@ -1157,6 +1158,7 @@ class InstaPy:
         @param sleep_delay_relax_point: sleep delay between a group of followings. Will be a random value between the provided values.
         @param relax_point_range: ()
         @param interact: Interact after a successful follow.
+        @param interact_delay: delay range between interactions.
         @return:
         """
 
@@ -1240,7 +1242,9 @@ class InstaPy:
                     self.logger.info("--> Not a valid user: {}".format(details))
                     not_valid_users += 1
                     # Sleep before doing more calls
-                    sleep(random.randint(sleep_delay_rand[0], sleep_delay_rand[1]))
+                    delay = random.randint(sleep_delay_rand[0], sleep_delay_rand[1])
+                    self.logger.info("Sleeping: {}\n".format(delay))
+                    sleep(delay)
 
                     continue
 
@@ -1262,6 +1266,8 @@ class InstaPy:
                 sleep(random.randint(3, 10))
 
                 if follow_state is True:
+                    self.logger.info("Followed: {}\n".format(acc_to_follow))
+
                     followed_all += 1
                     followed_new += 1
                     # reset jump counter after a successful follow
@@ -1274,7 +1280,7 @@ class InstaPy:
                     # Check if interaction is expected
                     if interact and self.do_like:
                         do_interact = (
-                            random.randint(5, 100) <= self.user_interact_percentage
+                            random.randint(0, 100) <= self.user_interact_percentage
                         )
                         # Do interactions if any
                         if do_interact and self.user_interact_amount > 0:
@@ -1296,6 +1302,11 @@ class InstaPy:
                             # revert back to original `self.do_follow` value
                             self.do_follow = original_do_follow
 
+                            # Sleep a random time based on the range provided after an interaction
+                            delay = random.randint(interact_delay[0], interact_delay[1])
+                            self.logger.info("Sleeping: {}\n".format(delay))
+                            sleep(delay)
+
                 elif msg == "already followed":
                     already_followed += 1
 
@@ -1303,8 +1314,10 @@ class InstaPy:
                     # will break the loop after certain consecutive jumps
                     self.jumps["consequent"]["follows"] += 1
 
-                # Sleep a random time based on the range provided after a follow and interaction
-                sleep(random.randint(sleep_delay_rand[0], sleep_delay_rand[1]))
+                # Sleep a random time based on the range provided after a follow
+                delay = random.randint(sleep_delay_rand[0], sleep_delay_rand[1])
+                self.logger.info("Sleeping: {}\n".format(delay))
+                sleep(delay)
 
         if standalone:  # print only for external usage (internal callers
             # have their printers)
