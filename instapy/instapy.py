@@ -1142,10 +1142,24 @@ class InstaPy:
         self,
         followlist: list,
         times: int = 1,
-        sleep_delay: int = 600,
+        sleep_delay: int = 70,
+        sleep_delay_rand: (int, int) = (60, 160),
+        sleep_delay_relax_point: (int, int) = (300, 600),
+        relax_point_range: (int, int) = (3, 5),
         interact: bool = False,
     ):
-        """Allows to follow by any scrapped list"""
+        """
+        Allows to follow by any scrapped list
+        @param followlist: List of usernames to follow.
+        @param times: times to follow the same user
+        @param sleep_delay: (unused) sleep delay between consecutive follows. Will be a random value between the provided values.
+        @param sleep_delay_rand: sleep delay between consecutive profile visits (follow or not).  Will be a random value between the provided values.
+        @param sleep_delay_relax_point: sleep delay between a group of followings. Will be a random value between the provided values.
+        @param relax_point_range: ()
+        @param interact: Interact after a successful follow.
+        @return:
+        """
+
         if not isinstance(followlist, list):
             followlist = [followlist]
 
@@ -1177,7 +1191,7 @@ class InstaPy:
         commented_init = self.commented
         inap_img_init = self.inap_img
 
-        relax_point = random.randint(7, 14)  # you can use some plain value
+        relax_point = random.randint(relax_point_range[0], relax_point_range[1])
         # `10` instead of this quitely randomized score
         self.quotient_breach = False
 
@@ -1200,19 +1214,10 @@ class InstaPy:
                 print("")
                 continue
 
-            if not users_validated:
-                # Verify if the user should be followed
-                validation, details = self.validate_user_call(acc_to_follow)
-                if validation is not True or acc_to_follow == self.username:
-                    self.logger.info("--> Not a valid user: {}".format(details))
-                    not_valid_users += 1
-                    continue
-
             # Take a break after a good following
             if followed_new >= relax_point:
-                delay_random = random.randint(
-                    ceil(sleep_delay * 0.85), ceil(sleep_delay * 1.14)
-                )
+                delay_random = random.randint(sleep_delay_relax_point[0], sleep_delay_relax_point[1])
+
                 sleep_time = (
                     "{} seconds".format(delay_random)
                     if delay_random < 60
@@ -1228,9 +1233,20 @@ class InstaPy:
                 relax_point = random.randint(7, 14)
                 pass
 
-            if not follow_restriction(
-                "read", acc_to_follow, self.follow_times, self.logger
-            ):
+            if not users_validated:
+                # Verify if the user should be followed
+                validation, details = self.validate_user_call(acc_to_follow)
+                if validation is not True or acc_to_follow == self.username:
+                    self.logger.info("--> Not a valid user: {}".format(details))
+                    not_valid_users += 1
+                    # Sleep before doing more calls
+                    sleep(random.randint(sleep_delay_rand[0], sleep_delay_rand[1]))
+
+                    continue
+
+            # Let's follow someone
+            if not follow_restriction("read", acc_to_follow, self.follow_times, self.logger):
+
                 follow_state, msg = follow_user(
                     self.browser,
                     "profile",
@@ -1241,7 +1257,9 @@ class InstaPy:
                     self.logger,
                     self.logfolder,
                 )
-                sleep(random.randint(1, 3))
+
+                # Sleep something before interacting
+                sleep(random.randint(3, 10))
 
                 if follow_state is True:
                     followed_all += 1
@@ -1256,7 +1274,7 @@ class InstaPy:
                     # Check if interaction is expected
                     if interact and self.do_like:
                         do_interact = (
-                            random.randint(0, 100) <= self.user_interact_percentage
+                            random.randint(5, 100) <= self.user_interact_percentage
                         )
                         # Do interactions if any
                         if do_interact and self.user_interact_amount > 0:
@@ -1285,7 +1303,8 @@ class InstaPy:
                     # will break the loop after certain consecutive jumps
                     self.jumps["consequent"]["follows"] += 1
 
-                sleep(1)
+                # Sleep a random time based on the range provided after a follow and interaction
+                sleep(random.randint(sleep_delay_rand[0], sleep_delay_rand[1]))
 
         if standalone:  # print only for external usage (internal callers
             # have their printers)
