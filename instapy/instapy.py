@@ -21,6 +21,8 @@ from logging.handlers import RotatingFileHandler
 from contextlib import contextmanager
 from copy import deepcopy
 
+from .delay_utils import Delayer
+
 try:
     from pyvirtualdisplay import Display
 except ModuleNotFoundError:
@@ -99,7 +101,6 @@ from .xpath import read_xpath
 # import exceptions
 from selenium.common.exceptions import NoSuchElementException
 from .exceptions import InstaPyError
-
 
 class InstaPy:
     """Class to be instantiated to use the script"""
@@ -1242,10 +1243,7 @@ class InstaPy:
                     self.logger.info("--> Not a valid user: {}".format(details))
                     not_valid_users += 1
                     # Sleep before doing more calls
-                    delay = random.randint(sleep_delay_rand[0], sleep_delay_rand[1])
-                    self.logger.info("Sleeping: {}\n".format(delay))
-                    sleep(delay)
-
+                    Delayer.random_delay(sleep_delay_rand, self.logger)
                     continue
 
             # Let's follow someone
@@ -1303,9 +1301,7 @@ class InstaPy:
                             self.do_follow = original_do_follow
 
                             # Sleep a random time based on the range provided after an interaction
-                            delay = random.randint(interact_delay[0], interact_delay[1])
-                            self.logger.info("Sleeping: {}\n".format(delay))
-                            sleep(delay)
+                            Delayer.random_delay(interact_delay, self.logger)
 
                 elif msg == "already followed":
                     already_followed += 1
@@ -1315,9 +1311,7 @@ class InstaPy:
                     self.jumps["consequent"]["follows"] += 1
 
                 # Sleep a random time based on the range provided after a follow
-                delay = random.randint(sleep_delay_rand[0], sleep_delay_rand[1])
-                self.logger.info("Sleeping: {}\n".format(delay))
-                sleep(delay)
+                Delayer.random_delay(sleep_delay_rand, self.logger)
 
         if standalone:  # print only for external usage (internal callers
             # have their printers)
