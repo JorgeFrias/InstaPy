@@ -228,7 +228,7 @@ class InstaPy:
         self.ignore_if_contains = []
         self.ignore_users = []
 
-        self.user_interact_amount = 0
+        # self.user_interact_amount = 0
         self.user_interact_media = None
         self.user_interact_percentage = 0
         self.user_interact_random = False
@@ -619,21 +619,31 @@ class InstaPy:
 
     def set_user_interact(
         self,
-        amount: int = 10,
+        amount: (int, int) = (3, 10),
         percentage: int = 100,
         randomize: bool = False,
         media: str = None,
     ):
-        """Define if posts of given user should be interacted"""
+        """Define if posts of given user should be interacted
+        :param amount: Range of random interaction.
+        :param percentage: Percentage of users that will be interacted.
+        :param randomize:
+        :param media: Kind of media to be interacted with `Photo`, `Video` or None wich means everything
+        :return:
+        """
         if self.aborting:
             return self
 
-        self.user_interact_amount = amount
+        self.user_interact_amount_range = amount
         self.user_interact_random = randomize
         self.user_interact_percentage = percentage
         self.user_interact_media = media
 
         return self
+
+    @property
+    def user_interact_amount(self):
+        return random.randint(self.user_interact_amount_range[0], self.user_interact_amount_range[1])
 
     def set_ignore_users(self, users: list = []):
         """Changes the possible restriction to users, if a user who posts
