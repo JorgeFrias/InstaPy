@@ -5,6 +5,8 @@ import random
 import os
 import csv
 import json
+from builtins import list
+
 import requests
 import unicodedata
 import logging
@@ -2443,10 +2445,24 @@ class InstaPy:
         self,
         usernames: list,
         amount: int = 10,
-        randomize: bool = False,
+        randomize: bool = True,
         media: str = None,
+        amount_random_range = (3, 10),
+        interact_delay_range: (int, int) = (5, 20)
     ):
-        """Likes some amounts of images for each usernames"""
+
+        """Likes some amounts of images for each usernames
+        :param usernames:
+        :param amount: Ignored, use amount_random_range instead
+        :param randomize: Randomize the post liked.
+        :param media: Specific kind of post to like.
+        :param amount_random_range: the quantity of posts liked will be randomly chosen from the provided range for each user account in the list.
+        :param interact_delay_range: Delay between interactions.
+        :return:
+        """
+
+        amount = random.randint(amount_random_range[0], amount_random_range[1])
+
         if self.aborting:
             return self
 
@@ -2502,46 +2518,32 @@ class InstaPy:
             follow_restricted = follow_restriction(
                 "read", username, self.follow_times, self.logger
             )
-            counter = 0
-            while True:
-                following = (
-                    random.randint(0, 100) <= self.follow_percentage
-                    and self.do_follow
-                    and not_dont_include
-                    and not follow_restricted
+
+            # Randomly evaluate the interactions with this user.
+            following = (
+                random.randint(0, 100) <= self.follow_percentage
+                and self.do_follow
+                and not_dont_include
+                and not follow_restricted
+            )
+            commenting = (
+                random.randint(0, 100) <= self.comment_percentage
+                and self.do_comment
+                and not_dont_include
+            )
+            liking = random.randint(0, 100) <= self.like_percentage
+            story = (
+                random.randint(0, 100) <= self.story_percentage and self.do_story
+            )
+            self.logger.info(
+                "username actions: following={} commenting={} liking={} story={}".format(
+                    following, commenting, liking, story
                 )
-                commenting = (
-                    random.randint(0, 100) <= self.comment_percentage
-                    and self.do_comment
-                    and not_dont_include
-                )
-                liking = random.randint(0, 100) <= self.like_percentage
+            )
 
-                story = (
-                    random.randint(0, 100) <= self.story_percentage and self.do_story
-                )
-
-                counter += 1
-
-                # if we have only one image to like/comment
-                if commenting and not liking and amount == 1:
-                    continue
-
-                if following or commenting or liking or story:
-                    self.logger.info(
-                        "username actions: following={} commenting={} "
-                        "liking={} story={}".format(
-                            following, commenting, liking, story
-                        )
-                    )
-                    break
-
-                # if for some reason we have no actions on this user
-                if counter > 5:
-                    self.logger.info(
-                        "username={} could not get interacted".format(username)
-                    )
-                    break
+            if (not following and not commenting and not liking and not story):
+                # If nothing to do, just skip this user, the cards didn't whant them.
+                continue
 
             try:
                 links = get_links_for_username(
@@ -2554,6 +2556,7 @@ class InstaPy:
                     randomize,
                     media,
                 )
+
             except NoSuchElementException:
                 self.logger.error("Element not found, skipping this username")
                 continue
@@ -6155,3 +6158,17 @@ class InstaPy:
             return []
 
         return target_list
+
+    # MARK: Fucking utility functions, 10 level if-else conditions are nuts, and only seen in junior years of computer science mayors...
+    def user_interact_evaluate_following(self, username: str) -> bool:
+        not_dont_include = username not in self.dont_include
+        follow_restricted = follow_restriction(
+            "read", username, self.follow_times, self.logger
+        )
+
+        return (
+                random.randint(0, 100) <= self.follow_percentage
+                and self.do_follow
+                and not_dont_include
+                and not follow_restricted
+            )
