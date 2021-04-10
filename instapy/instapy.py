@@ -2606,10 +2606,10 @@ class InstaPy:
                         continue
 
                     # Randomly evaluate the interactions with this user.
-                    following = user_interact_evaluate_following(username)
-                    commenting = user_interact_evaluate_commenting(username)
-                    liking = user_interact_evaluate_liking(username)
-                    story = user_interact_evaluate_story_watch(username)
+                    following = self.user_interact_evaluate_following(username)
+                    commenting = self.user_interact_evaluate_commenting(username)
+                    liking = self.user_interact_evaluate_liking(username)
+                    story = self.user_interact_evaluate_story_watch(username)
 
                     self.logger.info(
                         "username actions: following={} commenting={} liking={} story={}".format( following, commenting, liking, story))
