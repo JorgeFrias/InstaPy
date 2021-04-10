@@ -2448,7 +2448,8 @@ class InstaPy:
         randomize: bool = True,
         media: str = None,
         amount_random_range = (3, 10),
-        interact_delay_range: (int, int) = (5, 20)
+        interact_delay_range: (int, int) = (5, 20),
+        follow_delay_range: (int, int) = (35, 120)
     ):
 
         """Likes some amounts of images for each usernames
@@ -2535,6 +2536,7 @@ class InstaPy:
             # Reset like counter for every username
             liked_img = 0
 
+            # Image Interaction
             for i, link in enumerate(links[:amount]):
                 if self.jumps["consequent"]["likes"] >= self.jumps["limit"]["likes"]:
                     self.logger.warning(
@@ -2590,7 +2592,7 @@ class InstaPy:
                         # If nothing to do, just skip this user, the cards didn't whant them.
                         continue
 
-                    # like
+                    # 1. Like
                     if liking and verify_liking(self.browser, self.max_likes, self.min_likes, self.logger):
                         like_state, msg = like_image(
                             self.browser,
@@ -2621,6 +2623,7 @@ class InstaPy:
                         # We did like, now is time to wait a bit.
                         Delayer.random_delay(interact_delay_range, self.logger)
 
+                    # 2. Comment
                     if self.do_comment_liked_photo:
                         # comment
                         checked_img = True
@@ -2673,9 +2676,8 @@ class InstaPy:
                 except NoSuchElementException as err:
                     self.logger.info("Invalid Page: {}".format(err))
 
-            # follow
+            # Follow Interaction
             if following and not (self.dont_follow_inap_post and inap_img > 0):
-
                 follow_state, msg = follow_user(
                     self.browser,
                     track,
@@ -2689,17 +2691,18 @@ class InstaPy:
 
                 if follow_state is True:
                     followed += 1
+                    self.logger.info("User followed : {}".format(username))
+                    # We did folow, now is time to wait a bit.
+                    Delayer.random_delay(follow_delay_range, self.logger)
 
                 elif msg == "already followed":
                     already_followed += 1
 
-            else:
-                self.logger.info("--> Not following")
-                sleep(1)
-
-            # watch story if present
+            # Watch story if present Interaction
             if story:
                 self.story_by_users([username])
+                # We did like, now is time to wait a bit.
+                Delayer.random_delay(interact_delay_range, self.logger)
 
             if liked_img < amount:
                 self.logger.info("-------------")
@@ -6146,3 +6149,5 @@ class InstaPy:
 
     def user_interact_evaluate_story_watch(self, username: str) -> bool:
         return (random.randint(0, 100) <= self.story_percentage and self.do_story)
+
+
