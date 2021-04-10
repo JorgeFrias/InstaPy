@@ -1160,7 +1160,8 @@ class InstaPy:
         sleep_delay_relax_point: (int, int) = (300, 600),
         relax_point_range: (int, int) = (3, 5),
         interact: bool = False,
-        interact_delay: (int, int) = (1,5)
+        interact_amount_random_range=(3, 10),
+        interact_delay: (int, int) = (1,10)
     ):
         """
         Allows to follow by any scrapped list
@@ -1305,15 +1306,14 @@ class InstaPy:
                                 self.interact_by_users(
                                     acc_to_follow,
                                     self.user_interact_amount,
-                                    self.user_interact_random,
-                                    self.user_interact_media,
+                                    randomize = self.user_interact_random,
+                                    media = self.user_interact_media,
+                                    amount_random_range = interact_amount_random_range,
+                                    interact_delay_range=interact_delay,
                                 )
 
                             # revert back to original `self.do_follow` value
                             self.do_follow = original_do_follow
-
-                            # Sleep a random time based on the range provided after an interaction
-                            Delayer.random_delay(interact_delay, self.logger)
 
                 elif msg == "already followed":
                     already_followed += 1
@@ -2440,6 +2440,31 @@ class InstaPy:
         self.not_valid_users += not_valid_users
 
         return self
+
+    # MARK: Fucking utility functions, 10 level if-else conditions are nuts, and only seen in junior years of computer science mayors...
+    def user_interact_evaluate_following(self, username: str) -> bool:
+        not_dont_include = username not in self.dont_include
+        follow_restricted = follow_restriction(
+            "read", username, self.follow_times, self.logger
+        )
+
+        return (random.randint(0, 100) <= self.follow_percentage
+                and self.do_follow
+                and not_dont_include
+                and not follow_restricted)
+
+    def user_interact_evaluate_commenting(self, username: str) -> bool:
+        not_dont_include = username not in self.dont_include
+
+        return (random.randint(0, 100) <= self.comment_percentage
+                and self.do_comment
+                and not_dont_include)
+
+    def user_interact_evaluate_liking(self, username: str) -> bool:
+        return (random.randint(0, 100) <= self.like_percentage and self.do_like and self.delimit_liking)
+
+    def user_interact_evaluate_story_watch(self, username: str) -> bool:
+        return (random.randint(0, 100) <= self.story_percentage and self.do_story)
 
     def interact_by_users(
         self,
@@ -6124,30 +6149,5 @@ class InstaPy:
 
         return target_list
 
-    # MARK: Fucking utility functions, 10 level if-else conditions are nuts, and only seen in junior years of computer science mayors...
-    def user_interact_evaluate_following(self, username: str) -> bool:
-        not_dont_include = username not in self.dont_include
-        follow_restricted = follow_restriction(
-            "read", username, self.follow_times, self.logger
-        )
-
-        return (random.randint(0, 100) <= self.follow_percentage
-                and self.do_follow
-                and not_dont_include
-                and not follow_restricted)
-
-
-    def user_interact_evaluate_commenting(self, username: str) -> bool:
-        not_dont_include = username not in self.dont_include
-
-        return (random.randint(0, 100) <= self.comment_percentage
-                and self.do_comment
-                and not_dont_include)
-
-    def user_interact_evaluate_liking(self, username: str) -> bool:
-        return (random.randint(0, 100) <= self.like_percentage and self.do_like and self.delimit_liking)
-
-    def user_interact_evaluate_story_watch(self, username: str) -> bool:
-        return (random.randint(0, 100) <= self.story_percentage and self.do_story)
 
 
