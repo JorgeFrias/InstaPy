@@ -3656,6 +3656,7 @@ class InstaPy:
         amount: (int, int) = (10, 17),
         randomize: bool = False,
         interact: bool = False,
+        interact_amount_random_range=(3, 10),
         interact_delay: (int, int) = (1, 5),
         sleep_delay_rand: (int, int) = (60, 160),
         sleep_delay_relax_point: (int, int) = (300, 600),
@@ -3744,6 +3745,7 @@ class InstaPy:
                     sleep_delay_relax_point=sleep_delay_relax_point,
                     relax_point_range=relax_point_range,
                     interact=interact,
+                    interact_amount_random_range=interact_amount_random_range,
                     interact_delay=interact_delay
                 )
 
