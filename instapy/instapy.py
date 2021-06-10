@@ -1160,6 +1160,7 @@ class InstaPy:
         sleep_delay_relax_point: (int, int) = (300, 600),
         relax_point_range: (int, int) = (3, 5),
         interact: bool = False,
+        interact_randomize: bool = False,
         interact_amount_random_range=(3, 10),
         interact_delay: (int, int) = (1,10)
     ):
@@ -1306,7 +1307,7 @@ class InstaPy:
                                 self.interact_by_users(
                                     acc_to_follow,
                                     self.user_interact_amount,
-                                    randomize = self.user_interact_random,
+                                    randomize = interact_randomize,
                                     media = self.user_interact_media,
                                     amount_random_range = interact_amount_random_range,
                                     interact_delay_range=interact_delay,
@@ -2561,6 +2562,12 @@ class InstaPy:
             # Reset like counter for every username
             liked_img = 0
 
+            # Its used outside
+            following = self.user_interact_evaluate_following(username)
+            commenting = self.user_interact_evaluate_commenting(username)
+            liking = self.user_interact_evaluate_liking(username)
+            story = self.user_interact_evaluate_story_watch(username)
+
             # Image Interaction
             for i, link in enumerate(links[:amount]):
                 if self.jumps["consequent"]["likes"] >= self.jumps["limit"]["likes"]:
@@ -3656,6 +3663,7 @@ class InstaPy:
         amount: (int, int) = (10, 17),
         randomize: bool = False,
         interact: bool = False,
+        interact_randomize: bool = False,
         interact_amount_random_range=(3, 10),
         interact_delay: (int, int) = (1, 5),
         sleep_delay_rand: (int, int) = (60, 160),
@@ -3745,6 +3753,7 @@ class InstaPy:
                     sleep_delay_relax_point=sleep_delay_relax_point,
                     relax_point_range=relax_point_range,
                     interact=interact,
+                    interact_randomize=interact_randomize,
                     interact_amount_random_range=interact_amount_random_range,
                     interact_delay=interact_delay
                 )
